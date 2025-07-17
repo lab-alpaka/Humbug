@@ -45,12 +45,15 @@ df['Gesamtwachstum_%'] = ((df['Baumbestand'] / startbestand) - 1) * 100
 
 # Plots
 st.subheader("📈 Entwicklung des Baumbestands")
-plt.figure(figsize=(10, 5))
-plt.plot(df['Datum'], df['Baumbestand'], marker='o', linewidth=2)
-plt.xlabel("Datum")
-plt.ylabel("Anzahl Bäume")
-plt.grid(True)
-st.pyplot()
+
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.plot(df['Datum'], df['Baumbestand'], marker='o', linewidth=2)
+ax.set_xlabel("Datum")
+ax.set_ylabel("Anzahl Bäume")
+ax.set_title("Monatliche Baumbestandsentwicklung")
+ax.grid(True)
+
+st.pyplot(fig)
 
 # Statistiken
 st.subheader("📊 Statistische Kennzahlen")
