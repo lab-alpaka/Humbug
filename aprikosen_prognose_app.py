@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime, date
 
 
 # Titel
@@ -16,13 +16,19 @@ und einem prozentualen jährlichen Wachstum.
 # Seitenleiste für Parameter
 st.sidebar.header("🔧 Parameter konfigurieren")
 
-startbestand = st.sidebar.number_input("Startbestand (Bäume)", value=60000, step=1000)
+startbestand = st.sidebar.number_input("Startbestand (Bäume)", min_value=0, value=1000, step=100)
 monatliche_zugaenge = st.sidebar.number_input("Monatliche Zugänge", value=1800, step=100)
 jaehrliches_wachstum = st.sidebar.slider("Jährliches Wachstum (%)", min_value=0.0, max_value=20.0, value=7.0, step=0.1)
-prognosejahre = st.sidebar.slider("Prognosezeitraum (Jahre)", min_value=1, max_value=10, value=5)
+prognosejahre = st.sidebar.slider("Prognosezeitraum (Jahre)", min_value=1, max_value=50, value=5)
+startdatum_input = st.sidebar.date_input(
+    "Startdatum",
+    value=datetime.today().date(),
+    min_value=date(2000, 1, 1),
+    max_value=date(2050, 12, 31)
+)
 
 # Berechnungen
-startdatum = datetime(2025, 5, 1)
+startdatum = pd.Timestamp(startdatum_input)
 monate_gesamt = prognosejahre * 12
 monatlicher_wachstumsfaktor = (1 + jaehrliches_wachstum/100) ** (1/12)
 
@@ -30,7 +36,7 @@ daten = []
 aktueller_bestand = startbestand
 
 for monat in range(1, monate_gesamt + 1):
-    aktuelles_datum = startdatum + timedelta(days=30.44 * (monat - 1))
+    aktuelles_datum = startdatum + pd.DateOffset(months=monat - 1)
     daten.append({
         'Monat': monat,
         'Datum': aktuelles_datum,
