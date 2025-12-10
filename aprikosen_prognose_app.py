@@ -53,11 +53,35 @@ df['Gesamtwachstum_%'] = ((df['Baumbestand'] / startbestand) - 1) * 100
 st.subheader("📈 Entwicklung des Baumbestands")
 
 fig, ax = plt.subplots(figsize=(10, 5))
-ax.plot(df['Datum'], df['Baumbestand'], marker='o', linewidth=2)
+
+lineare_entwicklung = startbestand + (df['Monat'] - 1) * monatliche_zugaenge
+
+ax.plot(
+    df['Datum'],
+    df['Baumbestand'],
+    color='seagreen',
+    marker='$\u2618$',
+    markersize=10,
+    markerfacecolor='forestgreen',
+    markeredgecolor='forestgreen',
+    linewidth=2,
+    label='Prognose mit Wachstum'
+)
+
+ax.plot(
+    df['Datum'],
+    lineare_entwicklung,
+    color='black',
+    linewidth=2,
+    linestyle='--',
+    label='Lineare Entwicklung (ohne Zinseszins)'
+)
+
 ax.set_xlabel("Datum")
 ax.set_ylabel("Anzahl Bäume")
 ax.set_title("Monatliche Baumbestandsentwicklung")
 ax.grid(True)
+ax.legend()
 
 st.pyplot(fig)
 
