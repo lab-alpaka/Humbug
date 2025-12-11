@@ -14,7 +14,10 @@ und einem prozentualen jährlichen Wachstum.
 """)
 
 
-def _parse_int(value: str, field_label: str, minimum: int = 0):
+MAX_PROGNOSEJAHRE = 50
+
+
+def _parse_int(value: str, field_label: str, minimum: int = 0, maximum: int | None = None):
     if not value.strip():
         raise ValueError(f"{field_label} ist ein Pflichtfeld.")
     try:
@@ -23,6 +26,8 @@ def _parse_int(value: str, field_label: str, minimum: int = 0):
         raise ValueError(f"{field_label} muss eine ganze Zahl sein.")
     if parsed < minimum:
         raise ValueError(f"{field_label} muss mindestens {minimum} betragen.")
+    if maximum is not None and parsed > maximum:
+        raise ValueError(f"{field_label} darf höchstens {maximum} betragen.")
     return parsed
 
 
@@ -59,7 +64,9 @@ with st.sidebar.form("parameter_form", clear_on_submit=False):
     prognosejahre_input = st.text_input(
         "Prognosezeitraum (Jahre)",
         value="5",
-        help="Pflichtfeld. Anzahl der Jahre für die Prognose (mindestens 1)."
+        help=(
+            f"Pflichtfeld. Anzahl der Jahre für die Prognose (mindestens 1, maximal {MAX_PROGNOSEJAHRE})."
+        ),
     )
     startdatum_input = st.date_input(
         "Startdatum",
@@ -91,7 +98,12 @@ except ValueError as exc:
     validation_errors.append(str(exc))
 
 try:
-    prognosejahre = _parse_int(prognosejahre_input, "Prognosezeitraum (Jahre)", minimum=1)
+    prognosejahre = _parse_int(
+        prognosejahre_input,
+        "Prognosezeitraum (Jahre)",
+        minimum=1,
+        maximum=MAX_PROGNOSEJAHRE,
+    )
 except ValueError as exc:
     validation_errors.append(str(exc))
 
@@ -129,6 +141,7 @@ st.subheader("📈 Entwicklung des Baumbestands")
 fig, ax = plt.subplots(figsize=(10, 5))
 
 lineare_entwicklung = startbestand + (df['Monat'] - 1) * monatliche_zugaenge
+lineares_endbestandsziel = lineare_entwicklung.iloc[-1]
 
 ax.plot(
     df['Datum'],
@@ -162,10 +175,31 @@ st.pyplot(fig)
 # Statistiken
 st.subheader("📊 Statistische Kennzahlen")
 end_bestand = df['Baumbestand'].iloc[-1]
+zinseszinseffekt = end_bestand - lineares_endbestandsziel
 gesamtwachstum = end_bestand - startbestand
 gesamtwachstum_prozent = ((end_bestand / startbestand) - 1) * 100
+zinseszinseffekt_anteil_prozent = (zinseszinseffekt / end_bestand) * 100 if end_bestand else 0
 
 st.markdown(f"- **Startbestand:** {startbestand:,} Bäume")
 st.markdown(f"- **Endbestand:** {end_bestand:,.0f} Bäume")
 st.markdown(f"- **Gesamtwachstum:** {gesamtwachstum:,.0f} Bäume ({gesamtwachstum_prozent:.2f}%)")
+st.markdown(
+    f"- **Zusätzlicher Ertrag durch Zinseszins:** {zinseszinseffekt:,.0f} Bäume "
+    f"({zinseszinseffekt_anteil_prozent:.2f}% des Endbestands)"
+)
 st.markdown(f"- **Durchschnittlicher monatlicher Zuwachs:** {df['Monatlicher_Zuwachs'].mean():,.0f} Bäume")
+
+# Verteilung des Endbestands
+st.subheader("🥧 Anteil des Zinseszinseffekts am Endbestand")
+rest_bestand = end_bestand - zinseszinseffekt
+fig_pie, ax_pie = plt.subplots(figsize=(6, 6))
+ax_pie.pie(
+    [rest_bestand, zinseszinseffekt],
+    labels=["Lineare Entwicklung", "Zinseszinseffekt"],
+    autopct="%1.1f%%",
+    startangle=90,
+    colors=["#a3c9a8", "#2e7d32"],
+    explode=(0, 0.05),
+)
+ax_pie.axis('equal')
+st.pyplot(fig_pie)
