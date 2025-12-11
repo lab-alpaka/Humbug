@@ -9,23 +9,97 @@ from datetime import datetime, date
 # Titel
 st.title("🌳 Aprikosenbäume Entwicklungsprognose")
 st.markdown("""
-Dieses Tool prognostiziert den Bestand an Aprikosenbäumen basierend auf fixen monatlichen Neupflanzungen 
+Dieses Tool prognostiziert den Bestand an Aprikosenbäumen basierend auf fixen monatlichen Neupflanzungen
 und einem prozentualen jährlichen Wachstum.
 """)
 
+
+def _parse_int(value: str, field_label: str, minimum: int = 0):
+    if not value.strip():
+        raise ValueError(f"{field_label} ist ein Pflichtfeld.")
+    try:
+        parsed = int(value)
+    except ValueError:
+        raise ValueError(f"{field_label} muss eine ganze Zahl sein.")
+    if parsed < minimum:
+        raise ValueError(f"{field_label} muss mindestens {minimum} betragen.")
+    return parsed
+
+
+def _parse_float(value: str, field_label: str, minimum: float = 0.0):
+    if not value.strip():
+        raise ValueError(f"{field_label} ist ein Pflichtfeld.")
+    try:
+        parsed = float(value.replace(",", "."))
+    except ValueError:
+        raise ValueError(f"{field_label} muss eine Zahl sein.")
+    if parsed < minimum:
+        raise ValueError(f"{field_label} muss mindestens {minimum} betragen.")
+    return parsed
+
+
 # Seitenleiste für Parameter
 st.sidebar.header("🔧 Parameter konfigurieren")
+with st.sidebar.form("parameter_form", clear_on_submit=False):
+    startbestand_input = st.text_input(
+        "Startbestand (Bäume)",
+        value="1000",
+        help="Pflichtfeld. Gesamtzahl vorhandener Bäume zu Beginn (ganze Zahl)."
+    )
+    monatliche_zugaenge_input = st.text_input(
+        "Monatliche Zugänge",
+        value="1800",
+        help="Pflichtfeld. Geplante Neupflanzungen pro Monat (ganze Zahl)."
+    )
+    jaehrliches_wachstum_input = st.text_input(
+        "Jährliches Wachstum (%)",
+        value="7.0",
+        help="Pflichtfeld. Prozentuales Wachstum pro Jahr (0 oder größer)."
+    )
+    prognosejahre_input = st.text_input(
+        "Prognosezeitraum (Jahre)",
+        value="5",
+        help="Pflichtfeld. Anzahl der Jahre für die Prognose (mindestens 1)."
+    )
+    startdatum_input = st.date_input(
+        "Startdatum",
+        value=datetime.today().date(),
+        min_value=date(2000, 1, 1),
+        max_value=date(2050, 12, 31),
+        help="Pflichtfeld. Datum, ab dem die Prognose beginnen soll."
+    )
+    submitted = st.form_submit_button("Prognose berechnen")
 
-startbestand = st.sidebar.number_input("Startbestand (Bäume)", min_value=0, value=1000, step=100)
-monatliche_zugaenge = st.sidebar.number_input("Monatliche Zugänge", value=1800, step=100)
-jaehrliches_wachstum = st.sidebar.slider("Jährliches Wachstum (%)", min_value=0.0, max_value=20.0, value=7.0, step=0.1)
-prognosejahre = st.sidebar.slider("Prognosezeitraum (Jahre)", min_value=1, max_value=50, value=5)
-startdatum_input = st.sidebar.date_input(
-    "Startdatum",
-    value=datetime.today().date(),
-    min_value=date(2000, 1, 1),
-    max_value=date(2050, 12, 31)
-)
+if not submitted:
+    st.info("Bitte füllen Sie die Pflichtfelder links aus und starten Sie die Prognose.")
+    st.stop()
+
+validation_errors = []
+try:
+    startbestand = _parse_int(startbestand_input, "Startbestand (Bäume)")
+except ValueError as exc:
+    validation_errors.append(str(exc))
+
+try:
+    monatliche_zugaenge = _parse_int(monatliche_zugaenge_input, "Monatliche Zugänge")
+except ValueError as exc:
+    validation_errors.append(str(exc))
+
+try:
+    jaehrliches_wachstum = _parse_float(jaehrliches_wachstum_input, "Jährliches Wachstum (%)")
+except ValueError as exc:
+    validation_errors.append(str(exc))
+
+try:
+    prognosejahre = _parse_int(prognosejahre_input, "Prognosezeitraum (Jahre)", minimum=1)
+except ValueError as exc:
+    validation_errors.append(str(exc))
+
+if validation_errors:
+    for error in validation_errors:
+        st.sidebar.error(error)
+    st.error("Bitte korrigieren Sie die markierten Eingaben, um fortzufahren.")
+    st.stop()
 
 # Berechnungen
 startdatum = pd.Timestamp(startdatum_input)
