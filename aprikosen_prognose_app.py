@@ -14,7 +14,10 @@ und einem prozentualen jährlichen Wachstum.
 """)
 
 
-def _parse_int(value: str, field_label: str, minimum: int = 0):
+MAX_PROGNOSEJAHRE = 50
+
+
+def _parse_int(value: str, field_label: str, minimum: int = 0, maximum: int | None = None):
     if not value.strip():
         raise ValueError(f"{field_label} ist ein Pflichtfeld.")
     try:
@@ -23,6 +26,8 @@ def _parse_int(value: str, field_label: str, minimum: int = 0):
         raise ValueError(f"{field_label} muss eine ganze Zahl sein.")
     if parsed < minimum:
         raise ValueError(f"{field_label} muss mindestens {minimum} betragen.")
+    if maximum is not None and parsed > maximum:
+        raise ValueError(f"{field_label} darf höchstens {maximum} betragen.")
     return parsed
 
 
@@ -59,7 +64,9 @@ with st.sidebar.form("parameter_form", clear_on_submit=False):
     prognosejahre_input = st.text_input(
         "Prognosezeitraum (Jahre)",
         value="5",
-        help="Pflichtfeld. Anzahl der Jahre für die Prognose (mindestens 1)."
+        help=(
+            f"Pflichtfeld. Anzahl der Jahre für die Prognose (mindestens 1, maximal {MAX_PROGNOSEJAHRE})."
+        ),
     )
     startdatum_input = st.date_input(
         "Startdatum",
@@ -91,7 +98,12 @@ except ValueError as exc:
     validation_errors.append(str(exc))
 
 try:
-    prognosejahre = _parse_int(prognosejahre_input, "Prognosezeitraum (Jahre)", minimum=1)
+    prognosejahre = _parse_int(
+        prognosejahre_input,
+        "Prognosezeitraum (Jahre)",
+        minimum=1,
+        maximum=MAX_PROGNOSEJAHRE,
+    )
 except ValueError as exc:
     validation_errors.append(str(exc))
 
