@@ -181,9 +181,7 @@ zinseszinseffekt_nach_steuer = zinseszinseffekt * (1 - ABGELTUNGSSTEUER_SATZ)
 gesamtwachstum = end_bestand - startbestand
 gesamtwachstum_prozent = ((end_bestand / startbestand) - 1) * 100
 zinseszinseffekt_anteil_prozent = (zinseszinseffekt / end_bestand) * 100 if end_bestand else 0
-zinseszinseffekt_anteil_nach_steuer_prozent = (
-    (zinseszinseffekt_nach_steuer / end_bestand) * 100 if end_bestand else 0
-)
+zinseszinseffekt_anteil_nach_steuer_prozent = zinseszinseffekt_anteil_prozent * (1 - ABGELTUNGSSTEUER_SATZ)
 
 st.markdown(f"- **Startbestand:** {startbestand:,} Bäume")
 st.markdown(f"- **Endbestand:** {end_bestand:,.0f} Bäume")
@@ -193,10 +191,9 @@ st.markdown(
     f"({zinseszinseffekt_anteil_prozent:.2f}% des Endbestands)"
 )
 st.markdown(
-    f"- **Zusätzlicher Ertrag durch Zinseszins (nach Abgeltungssteuer {ABGELTUNGSSTEUER_SATZ:.0%}):** "
-    f"{zinseszinseffekt_nach_steuer:,.0f} Bäume ({zinseszinseffekt_anteil_nach_steuer_prozent:.2f}% des Endbestands)"
+    f"- **Anteil Kapitalertrag nach Abgeltungssteuer ({ABGELTUNGSSTEUER_SATZ:.0%}):** "
+    f"{zinseszinseffekt_anteil_nach_steuer_prozent:.2f}%"
 )
-st.caption("Hinweis: Es wird ausschließlich die Abgeltungssteuer berücksichtigt (keine Dividendensteuer).")
 st.markdown(f"- **Durchschnittlicher monatlicher Zuwachs:** {df['Monatlicher_Zuwachs'].mean():,.0f} Bäume")
 
 # Verteilung des Endbestands
