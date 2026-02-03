@@ -177,6 +177,7 @@ st.pyplot(fig)
 st.subheader("📊 Statistische Kennzahlen")
 end_bestand = df['Baumbestand'].iloc[-1]
 zinseszinseffekt = end_bestand - lineares_endbestandsziel
+zinseszinseffekt_nach_steuer = zinseszinseffekt * (1 - ABGELTUNGSSTEUER_SATZ)
 gesamtwachstum = end_bestand - startbestand
 gesamtwachstum_prozent = ((end_bestand / startbestand) - 1) * 100
 zinseszinseffekt_anteil_prozent = (zinseszinseffekt / end_bestand) * 100 if end_bestand else 0
@@ -186,7 +187,7 @@ st.markdown(f"- **Startbestand:** {startbestand:,} Bäume")
 st.markdown(f"- **Endbestand:** {end_bestand:,.0f} Bäume")
 st.markdown(f"- **Gesamtwachstum:** {gesamtwachstum:,.0f} Bäume ({gesamtwachstum_prozent:.2f}%)")
 st.markdown(
-    f"- **Zusätzlicher Ertrag durch Zinseszins:** {zinseszinseffekt:,.0f} Bäume "
+    f"- **Zusätzlicher Ertrag durch Zinseszins (vor Steuer):** {zinseszinseffekt:,.0f} Bäume "
     f"({zinseszinseffekt_anteil_prozent:.2f}% des Endbestands)"
 )
 st.markdown(
