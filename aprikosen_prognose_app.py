@@ -15,6 +15,7 @@ und einem prozentualen jährlichen Wachstum.
 
 
 MAX_PROGNOSEJAHRE = 50
+ABGELTUNGSSTEUER_SATZ = 0.26
 
 
 def _parse_int(value: str, field_label: str, minimum: int = 0, maximum: int | None = None):
@@ -179,6 +180,7 @@ zinseszinseffekt = end_bestand - lineares_endbestandsziel
 gesamtwachstum = end_bestand - startbestand
 gesamtwachstum_prozent = ((end_bestand / startbestand) - 1) * 100
 zinseszinseffekt_anteil_prozent = (zinseszinseffekt / end_bestand) * 100 if end_bestand else 0
+zinseszinseffekt_anteil_nach_steuer_prozent = zinseszinseffekt_anteil_prozent * (1 - ABGELTUNGSSTEUER_SATZ)
 
 st.markdown(f"- **Startbestand:** {startbestand:,} Bäume")
 st.markdown(f"- **Endbestand:** {end_bestand:,.0f} Bäume")
@@ -186,6 +188,10 @@ st.markdown(f"- **Gesamtwachstum:** {gesamtwachstum:,.0f} Bäume ({gesamtwachstu
 st.markdown(
     f"- **Zusätzlicher Ertrag durch Zinseszins:** {zinseszinseffekt:,.0f} Bäume "
     f"({zinseszinseffekt_anteil_prozent:.2f}% des Endbestands)"
+)
+st.markdown(
+    f"- **Anteil Kapitalertrag nach Abgeltungssteuer ({ABGELTUNGSSTEUER_SATZ:.0%}):** "
+    f"{zinseszinseffekt_anteil_nach_steuer_prozent:.2f}%"
 )
 st.markdown(f"- **Durchschnittlicher monatlicher Zuwachs:** {df['Monatlicher_Zuwachs'].mean():,.0f} Bäume")
 
